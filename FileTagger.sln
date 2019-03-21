@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28307.438
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "Tagger", "Tagger\Tagger.pyproj", "{E12C2225-0FDE-4B57-9A37-43BD82E3CD80}"
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "FileTagger", "Tagger\FileTagger.pyproj", "{E12C2225-0FDE-4B57-9A37-43BD82E3CD80}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
