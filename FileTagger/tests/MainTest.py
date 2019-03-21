@@ -2,7 +2,6 @@ import unittest
 import sys
 
 import Tagger
-#from Tagger.code.Tagger import TestFunction
 from Tagger import Tagger
 from Tagger.Tagger import TestFunction
 

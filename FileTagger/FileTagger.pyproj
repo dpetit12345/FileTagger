@@ -27,7 +27,13 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Tagger\Tagger.py" />
+    <Compile Include="Tagger\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="tests\MainTest.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="tests\__init__.py">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
