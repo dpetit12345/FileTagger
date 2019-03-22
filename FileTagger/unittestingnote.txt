@@ -1,0 +1,4 @@
+To run tests from the commandline, from this directory run:
+python -m unittest MainTest (or test filename)
+to run a specific test, use
+python -m unittest tests.MainTest.TestClass.TestFunction

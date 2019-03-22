@@ -13,7 +13,7 @@
     <Name>FileTagger</Name>
     <RootNamespace>Tagger</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>d:\test1 d:\test2 d:\test3 -r -noui</CommandLineArguments>
+    <CommandLineArguments>e:\music e:\composers.csv e:\artists.csv -r -noui</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <IsWindowsApplication>False</IsWindowsApplication>
   </PropertyGroup>
@@ -26,20 +26,16 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Tagger\Cluster.py" />
+    <Compile Include="Tagger\Logging.py" />
     <Compile Include="Tagger\Tagger.py" />
-    <Compile Include="Tagger\__init__.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="tests\MainTest.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="tests\__init__.py">
+    <Compile Include="Tagger\Tests.py">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Tagger\" />
-    <Folder Include="tests\" />
+    <Folder Include="Tagger\TestData\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in
