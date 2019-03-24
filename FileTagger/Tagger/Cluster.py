@@ -27,6 +27,8 @@ class ClusterMaker():
         for path in paths:
             self.addFiles(path, recursive)
 
+
+            #TODO: add wrapper to detect if audio file has changed
         
     def addFiles(self, path, recursive):
         #uses path to load a bunch of mutagen clusters keyed by shared directory.

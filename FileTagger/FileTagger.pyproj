@@ -13,7 +13,7 @@
     <Name>FileTagger</Name>
     <RootNamespace>Tagger</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>e:\music e:\composers.csv e:\artists.csv -r -noui</CommandLineArguments>
+    <CommandLineArguments>-r -e Tagger\TestData</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <IsWindowsApplication>False</IsWindowsApplication>
   </PropertyGroup>
