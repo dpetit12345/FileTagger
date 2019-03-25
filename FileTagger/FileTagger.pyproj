@@ -13,7 +13,7 @@
     <Name>FileTagger</Name>
     <RootNamespace>Tagger</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>-r -e Tagger\TestData</CommandLineArguments>
+    <CommandLineArguments>-r -e Tagger\TestData\file1.flac</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <IsWindowsApplication>False</IsWindowsApplication>
   </PropertyGroup>
@@ -26,6 +26,7 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Tagger\classical_fixes.py" />
     <Compile Include="Tagger\Cluster.py" />
     <Compile Include="Tagger\Logging.py" />
     <Compile Include="Tagger\Tagger.py" />
@@ -35,7 +36,17 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Tagger\" />
+    <Folder Include="Tagger\Data\" />
     <Folder Include="Tagger\TestData\" />
+    <Folder Include="Tagger\TestData\subfolder\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Tagger\Data\artists.csv" />
+    <Content Include="Tagger\TestData\File1.flac" />
+    <Content Include="Tagger\TestData\File2.flac" />
+    <Content Include="Tagger\TestData\fileisnotandaudiofile.txt" />
+    <Content Include="Tagger\TestData\subfolder\File1.flac" />
+    <Content Include="Tagger\TestData\subfolder\File2.flac" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

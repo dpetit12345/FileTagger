@@ -3,6 +3,7 @@ import sys
 from Logging import Log
 from Logging import LogLevel
 from Cluster import ClusterMaker
+from classical_fixes import ClassicalFixes
 
 
 if __name__ == '__main__':
@@ -15,15 +16,12 @@ if __name__ == '__main__':
     parser.add_argument('-v',default=2, action='store', help='Verbosity 1=Error, 2=Warning, 3=Info',type=int,choices=[1,2,3])
     args = parser.parse_args()
     
-    #Log.writeLog(args.files, LogLevel.ERROR)
-    #Log.writeLog(args, LogLevel.INFO)
-    #Log.writeError('Test Error')
-    #Log.writeInfo('Test Info')
-
     recursive = args.r
     useUI = not args.noui
     enum = args.e
+    verbosity = args.v
 
+    Log.level = verbosity
 
     if args.noui and len(args.files) == 0:
         Log.writeError('No files specified and UI not active. Nothing to do.')
@@ -38,11 +36,21 @@ if __name__ == '__main__':
         Log.writeError('Unable to cluster files. Nothing to do.')
         quit()
 
-
+    Log.writeInfo ('Created %i clusters.' % len(cm.clusters))
     if enum:
-        Log.writeInfo ('Created %i clusters.' % len(cm.clusters))
         for i, (k, v) in enumerate(cm.clusters.items()):
             Log.writeLog('%i ' % (i + 1) + k + ': %i files' % len(v.files), LogLevel.INFO)
+
+    #now it is time to do the real work
+    #if UI is specified, display the UI with the files cluster (or without files if nothing provided)
+    #else process the clustered files.
+
+    if useUI:
+        pass
+    else:
+        pass
+    fixer = ClassicalFixes()
+    fixer.processFiles(cm.clusters)
 
 
 

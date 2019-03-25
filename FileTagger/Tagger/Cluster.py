@@ -57,12 +57,9 @@ class ClusterMaker():
                     self.clusters[filepath] = Cluster()
                     self.clusters[filepath].addFile(audio)
             else:
-                print('bad file: ' + file)
+                Log.writeInfo('bad file: ' + file)
 
-        #Log.writeInfo ('Created %i clusters.' % len(self.clusters))
-        #for i, (k, v) in enumerate(self.clusters.items()):
-        #    Log.writeLog('%i' % i + k + '%i' % len(v.files), LogLevel.INFO)
-            
+
 
 
 
