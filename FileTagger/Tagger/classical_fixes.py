@@ -1,39 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Classical Fixes
-# Copyright (C) 2019 Dan Petit
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-#PLUGIN_NAME = 'Classical Fixes'
-#PLUGIN_AUTHOR = 'Dan Petit'
-#PLUGIN_DESCRIPTION = '''
-#Fix items associated with classical music.
-
-
-#PLUGIN_VERSION = '1.0'
-#PLUGIN_API_VERSIONS = ['2.0']
-#PLUGIN_LICENSE = 'GPL-3.0'
-#PLUGIN_LICENSE_URL = 'https://www.gnu.org/licenses/gpl.txt'
-
-#from picard import log
-#from picard.cluster import Cluster
-#from picard.album import Album
-#from picard.ui.itemviews import BaseAction, register_cluster_action, register_album_action, register_clusterlist_action, register_file_action, register_track_action
-#import suffixtree
-
 import re
 import os
 import unicodedata
@@ -72,29 +39,13 @@ ORCH_RE = re.compile('[Oo]rchestr|[Oo]rkest|[Pp]hilharmoni|[Cc]onsort|[Ee]nsemb'
 #BRACKET_RE = re.compile('\\[(?![Ll][Ii][Vv][Ee]|[Bb][Oo][Oo]|[Ii][Mm]|[Ff][Ll][Aa][Cc]|[[Dd][Ss][Dd]|[Mm][Pp][3]|[Dd][Ss][Ff])[a-zA-Z0-9]{1,}\\]')
 #\[(?![Ll][Ii][Vv][Ee]|[Bb][Oo][Oo]|[Ii][Mm]|[Ff][Ll][Aa][Cc]|[[Dd][Ss][Dd]|[Mm][Pp][3]|[Dd][Ss][Ff])[a-zA-Z0-9]{1,}\]
 
-#class AlbumAction(BaseAction):
-#    NAME = 'Menu for AlbumAction'
-
-#    def callback(self, objs):
-#        Log.writeInfo('AlbumAction called.')
-
-#class TrackAction(BaseAction):
-#    NAME = 'Menu for TrackAction'
-
-#    def callback(self, objs):
-#        Log.writeInfo('TrackAction called.')
-
-#class ClusterListAction(BaseAction):
-#    NAME = 'Menu for ClusterListAction'
-
-#    def callback(self, objs):
-#        Log.writeInfo('ClusterListAction called.')
-
-#class FileAction(BaseAction):
-#    NAME = 'Menu for FileAction'
-
-#    def callback(self, objs):
-#        Log.writeInfo('FileAction called.')        
+def flattenList(theList):
+    newList = []
+    for item in theList:
+        value = item.replace('; ',';')
+        newList += value.split(';')
+    return newList
+           
 
 class ArtistLookup():
     key=''
@@ -116,7 +67,8 @@ class ArtistLookup():
         self.primaryepoque=lineparts[6].strip()
 
 class ClassicalFixes():
-    
+
+
     def processFiles(self, clusters):
         Log.writeInfo('Classical Fixes started')
 
@@ -127,7 +79,7 @@ class ClassicalFixes():
             ['\\b[Nn][Bb][Rr][.]?\\s([0-9])', '#\\1'], #Nbr. 99 -> #99
             ['\\b[Oo][Pp][Uu][Ss][ ]*([0-9])','Op. \\1'], #Opus 99 -> Op. 99
 			['\\b[Oo][Pp][.]?[ ]*([0-9])','Op. \\1'], #OP.   99 -> Op. 99
-            ['\\b[Ss][Yy][Mm][ |.][ ]*([0-9])','Symphony \\1'], #Sym. -> Symphony
+            ['\\b[Ss][Yy][Mm][ |.][ ]*(.)','Symphony \\1'], #Sym. -> Symphony
             ['\\b[Ss][Yy][Mm][Pp][Hh][Oo][Nn][Ii][Ee][ ]*[#]?([0-9])','Symphony #\\1'],  #Symphonie -> symphony
             ['\\b[Mm][Ii][Nn][.]','min.'],
             ['\\b[Mm][Aa][Jj][.]','Maj.'],
@@ -181,38 +133,41 @@ class ClassicalFixes():
                 composerList=[]
                 trackArtistList = []
                 trackAlbumArtistList = []
+
+                #assume there is only one composer tag and orch and conductor
+
                 #normalize album artist list
-                if 'albumartist' in f:
-                    f['album artist'] = f['albumartist']
-                else:
-                    if 'album artist' in f:
-                        f['albumartist'] = f['album artist']
+                if 'albumartist' in f.audio and 'album artist' in f.audio:
+                    f.audio['album artist'] = f.audio['albumartist']
                 
                 #album artist is string with semicolons, rest are lists
                 #TODO: Pickup here
                         
                
                 #fill the vars from the tags. Orchestra and conductor are assumed to be singular
-                if 'conductor' in f:
-                    conductorTag = listToString(f['conductor'])
-                if 'orchestra' in f:
-                    orchestraTag = listToString(f['orchestra'])
-                if 'composer' in f:
-                    composerList = f['composer']
-                if 'composer view' in f:
-                    composerViewList = f['composer view']
-                if 'artist' in f:
-                    trackArtistList = f['artist']
-                if 'albumartist' in f:
-                    #Log.writeInfo('Have albumartist: ' + listToString(f['albumartist']))
-                    trackAlbumArtistList= f['albumartist']
-                if 'album artist' in f:
-                    #Log.writeInfo('Have album artist: ' + listToString(f['album artist']))
-                    if set(trackAlbumArtistList) == set(f['album artist']):
-                        Log.writeInfo('Have album artist: ' + listToString(f['album artist']) + ' same as albumartist tag') 
+                if 'conductor' in f.audio:
+                    conductorTag = listToString(flattenList(f.audio['conductor']))
+                if 'orchestra' in f.audio:
+                    orchestraTag = listToString(flattenList(f.audio['orchestra']))
+                if 'composer' in f.audio:
+                    composerList = flattenList(f.audio['composer'])
+                    f.audio['composer'] = composerList
+                if 'composer view' in f.audio:
+                    composerViewList = flattenList(f.audio['composer view'])
+                if 'artist' in f.audio:
+                    trackArtistList = flattenList(f.audio['artist'])
+                    f.audio['artist'] = trackArtistList
+                if 'albumartist' in f.audio:
+                    #Log.writeInfo('Have albumartist: ' + listToString(f.audio['albumartist']))
+                    trackAlbumArtistList = flattenList(f.audio['albumartist'])
+                    f.audio['albumartist'] = trackAlbumArtistList
+                if 'album artist' in f.audio:
+                    #Log.writeInfo('Have album artist: ' + listToString(f.audio['album artist']))
+                    if set(trackAlbumArtistList) == set(f.audio['album artist']):
+                        Log.writeInfo('Have album artist: ' + listToString(f.audio['album artist']) + ' same as albumartist tag') 
                         pass
                     else:
-                        trackAlbumArtistList= f['album artist']                                          
+                        trackAlbumArtistList= flattenList(f.audio['album artist'])
 
                 
                 #if there is no orchestra tag, go through the artists and see if there is one that matches the orchestra list
@@ -223,15 +178,15 @@ class ClassicalFixes():
                         foundArtist = artistLookup[trackArtistKey]
                         #Log.writeInfo ('Found track artist ' + trackArtist + ' in lookup list. Role is ' + foundArtist.primaryrole)
                         if foundArtist.primaryrole =='Orchestra' and not orchestraTag:
-                            f['orchestra'] = foundArtist.name    
+                            f.audio['orchestra'] = foundArtist.name    
                             orchestraTag = foundArtist.name
                         if foundArtist.primaryrole =='Conductor' and not conductorTag:
-                            f['conductor'] = foundArtist.name    
+                            f.audio['conductor'] = foundArtist.name    
                             conductorTag = foundArtist.name
                         if foundArtist.primaryrole =='Composer' and not composerList:                          
-                            f['composer'] = foundArtist.name
+                            f.audio['composer'] = foundArtist.name
                             composerList = foundArtist.name
-                            f['composer view'] = foundArtist.sortorderwithdates
+                            f.audio['composer view'] = foundArtist.sortorderwithdates
                     else:
                         Log.writeInfo('No artists found for key: ' + trackArtistKey)
 
@@ -244,15 +199,15 @@ class ClassicalFixes():
                         foundArtist = artistLookup[trackAlbumArtistKey]
                         #Log.writeInfo ('Found track artist ' + trackArtist + ' in lookup list. Role is ' + foundArtist.primaryrole)
                         if foundArtist.primaryrole =='Orchestra' and not orchestraTag:
-                            f['orchestra'] = foundArtist.name    
+                            f.audio['orchestra'] = foundArtist.name    
                             orchestraTag = foundArtist.name
                         if foundArtist.primaryrole =='Conductor' and not conductorTag:
-                            f['conductor'] = foundArtist.name    
+                            f.audio['conductor'] = foundArtist.name    
                             conductorTag = foundArtist.name
                         if foundArtist.primaryrole =='Composer' and not composerList:                          
-                            f['composer'] = foundArtist.name
+                            f.audio['composer'] = foundArtist.name
                             composerList = foundArtist.name
-                            f['composer view'] = foundArtist.sortorderwithdates
+                            f.audio['composer view'] = foundArtist.sortorderwithdates
                     else:
                         Log.writeInfo('No artists found for key: ' + trackArtistKey)
 
@@ -265,8 +220,8 @@ class ClassicalFixes():
                     newCompList = []
                     newCompViewList = []
                     epoque = ''
-                    if 'epoque' in f:
-                        epoque = f['epoque']
+                    if 'epoque' in f.audio:
+                        epoque = f.audio['epoque']
 
                     for composer in composerList:
                         #Log.writeInfo('There is a composer: ' + composerList)
@@ -276,166 +231,177 @@ class ClassicalFixes():
                             foundComposer = artistLookup[composerKey]
                             if foundComposer.primaryrole == 'Composer':
                                 Log.writeInfo('found a composer - setting tags')
-                                #Log.writeInfo('existing Composer: |' + f['Composer'] + '| - composer: |' + f['composer'] + '|')
-                                #Log.writeInfo('existing Composer View: |' + f['Composer View'] + '| - composer view: |' + f['composer view'] + '|')
+                                #Log.writeInfo('existing Composer: |' + f.audio['Composer'] + '| - composer: |' + f.audio['composer'] + '|')
+                                #Log.writeInfo('existing Composer View: |' + f.audio['Composer View'] + '| - composer view: |' + f.audio['composer view'] + '|')
                                 newCompList.append(foundComposer.name)
-                                #f['composer'] = foundComposer.name
+                                #f.audio['composer'] = foundComposer.name
                                 newCompViewList.append(foundComposer.sortorderwithdates)
-                                #f['composer view'].append(foundComposer.sortorderwithdates)
+                                #f.audio['composer view'].append(foundComposer.sortorderwithdates)
                                 if foundComposer.primaryepoque:
-                                    f['epoque'] = foundComposer.primaryepoque
+                                    f.audio['epoque'] = foundComposer.primaryepoque
      
                         else:
                             #use the actual name and derive the view
                             newCompList.append(composer)
                             newCompViewList.append(reverseName(composer))
-                    f['composer'] = newCompList
-                    f['composer view'] = newCompViewList
+                    f.audio['composer'] = newCompList
+                    f.audio['composer view'] = newCompViewList
 
                 #if there is no orchestra, but there is an artist tag that contains a name that looks like and orchestra, use that
-                if 'orchestra' not in f:
+                if 'orchestra' not in f.audio:
                     for artist in trackArtistList:
                         if ORCH_RE.search(artist):
-                            f['orchestra'] = artist
+                            f.audio['orchestra'] = artist
                             break
 
                 Log.writeInfo('checking for conductor and orchestra in album artists')
                 #if there is a conductor AND and orchestra tag, and they are both in the album artist tag, rearrange
-                if 'conductor' in f and 'orchestra' in f:
+                if 'conductor' in f.audio and 'orchestra' in f.audio:
                     Log.writeInfo('There is a conductor and orchestra tag')
                     foundConductor = False
                     foundOrchestra = False
                     #Log.writeInfo('Track artists count: ' + len(trackAlbumArtistList))
                     for artist in trackAlbumArtistList:
-                        Log.writeInfo('Processing album artist: ' + artist + ' - conductor is: ' + listToString(f['conductor']) + ' - orchestra is: ' + listToString(f['orchestra']))
-                        if artist in f['conductor']:
+                        Log.writeInfo('Processing album artist: ' + artist + ' - conductor is: ' + listToString(f.audio['conductor']) + ' - orchestra is: ' + listToString(f.audio['orchestra']))
+                        if artist in f.audio['conductor']:
                             Log.writeInfo('Found Conductor in album artist')
                             foundConductor=True
-                        if artist in f['orchestra']:
+                        if artist in f.audio['orchestra']:
                             Log.writeInfo('Found orchestra in album artist')
                             foundOrchestra=True
                     if foundConductor or foundOrchestra:
                         newAlbumArtistList = []
                         if foundConductor:
-                            newAlbumArtistList += f['conductor']
+                            newAlbumArtistList += f.audio['conductor']
                         if foundOrchestra:
-                            newAlbumArtistList += f['orchestra']
+                            newAlbumArtistList += f.audio['orchestra']
                         for artist in trackAlbumArtistList:
-                            if artist not in f['conductor'] and artist not in f['orchestra']:
+                            if artist not in f.audio['conductor'] and artist not in f.audio['orchestra']:
                                 newAlbumArtistList.append(artist)
 
                         Log.writeInfo('Setting album artist to: ' + listToString(newAlbumArtistList))
-                        if set(f['albumartist']) != set(newAlbumArtistList):
-                            f['albumartist'] = newAlbumArtistList
+                        if f.audio['albumartist'] != newAlbumArtistList:
+                            f.audio['albumartist'] = newAlbumArtistList
 
-                #TODO: Copy the above
-                #Log.writeInfo('checking for conductor and orchestra in artists')
-                ##if there is a conductor AND and orchestra tag, and they are both in the album artist tag, rearrange
-                #if 'conductor' in f and 'orchestra' in f:
-                #    Log.writeInfo('There is a conductor and orchestra tag')
-                #    foundConductor = False
-                #    foundOrchestra = False
-                #    #Log.writeInfo('Track artists count: ' + len(trackAlbumArtistList))
-                #    for artist in trackArtistList:
-                #        Log.writeInfo('Processing artist: ' + artist + ' - conductor is: ' + f['conductor'])
-                #        if artist == f['conductor']:
-                #            Log.writeInfo('Found Conductor in album artist')
-                #            foundConductor=True
-                #        if artist == f['orchestra']:
-                #            Log.writeInfo('Found orchestra in album artist')
-                #            foundOrchestra=True
-                #    if foundConductor and foundOrchestra:
-                #        newArtistTag = ''
-                #        newArtistTag = f['conductor'] + '; ' + f['orchestra'] + '; '
-                #        for artist in trackArtistList:
-                #            if artist != f['conductor'] and artist!=f['orchestra']:
-                #                newArtistTag=newArtistTag+artist + '; '
-                #            Log.writeInfo('Setting artist to: ' + newArtistTag[:-2] + '|')
-                #            if f['artist'] != newArtistTag[:-2]:
-                #                f['artist'] = newArtistTag[:-2]
+
+                Log.writeInfo('checking for conductor and orchestra in artists')
+                #if there is a conductor AND and orchestra tag, and they are both in the album artist tag, rearrange
+                if 'conductor' in f.audio and 'orchestra' in f.audio:
+                    Log.writeInfo('There is a conductor and orchestra tag')
+                    foundConductor = False
+                    foundOrchestra = False
+                    #Log.writeInfo('Track artists count: ' + len(trackAlbumArtistList))
+                    for artist in trackArtistList:
+                        Log.writeInfo('Processing artist: ' + artist + ' - conductor is: ' + listToString(f.audio['conductor']) + ' - orchestra is: ' + listToString(f.audio['orchestra']))
+                        if artist in f.audio['conductor']:
+                            Log.writeInfo('Found Conductor in artist')
+                            foundConductor=True
+                        if artist in f.audio['orchestra']:
+                            Log.writeInfo('Found orchestra in artist')
+                            foundOrchestra=True
+                    if foundConductor or foundOrchestra:
+                        newArtistList = []
+                        if foundConductor:
+                            newArtistList += f.audio['conductor']
+                        if foundOrchestra:
+                            newArtistList += f.audio['orchestra']
+                        for artist in trackArtistList:
+                            if artist not in f.audio['conductor'] and artist not in f.audio['orchestra']:
+                                newArtistList.append(artist)
+
+                        Log.writeInfo('Setting album artist to: ' + listToString(newArtistList))
+                        if f.audio['artist'] != newArtistList:
+                            f.audio['artist'] = newArtistList
                                 
 
 
-                Log.writeInfo('Reloading albumartist: ' + f['albumartist'])
-                albumArtistsTag = f['albumartist']
-                albumArtistsTag = albumArtistsTag.replace('; ',';')
-                trackAlbumArtistList = albumArtistsTag.split(';')
+                Log.writeInfo('Reloading albumartist: ' + listToString(f.audio['albumartist']))
+                #albumArtistsTag = f.audio['albumartist']
+                #albumArtistsTag = albumArtistsTag.replace('; ',';')
+                #trackAlbumArtistList = albumArtistsTag.split(';')
+                trackAlbumArtistList= f.audio['albumartist']
 
-                artistsTag = f['artist']
-                artistsTag = artistsTag.replace('; ',';')
-                trackArtistList = artistsTag.split(';')
+                #artistsTag = 
+                #artistsTag = artistsTag.replace('; ',';')
+                trackArtistList = f.audio['artist']
 
 
                 #At this point if there is no composer, but we find what look like a composer in the tags, move it
-                if 'composer' not in f:
+                if 'composer' not in f.audio:
                     for artist in trackArtistList:
                         key = makeKey(artist)
                         if key in artistLookup:
                             foundComposer = artistLookup[key]
                             if foundComposer.primaryrole == 'Composer':
                                 Log.writeInfo('Found composer ' + foundComposer.name + ' in track artist - moving')
-                                f['composer'] = foundComposer.name
+                                f.audio['composer'] = foundComposer.name
                                 break
 
-                if 'composer' not in f:
+                if 'composer' not in f.audio:
                     for artist in trackAlbumArtistList:
                         key = makeKey(artist)
                         if key in artistLookup:
                             foundComposer = artistLookup[key]
                             if foundComposer.primaryrole == 'Composer':
                                 Log.writeInfo('Found composer ' + foundComposer.name + ' in track artist - moving')
-                                f['composer'] = foundComposer.name
+                                f.audio['composer'] = foundComposer.name
                                 break
 
-                Log.writeInfo('Before - albumartist is: ' + f['albumartist'] + '|')
+                Log.writeInfo('Before - albumartist is: ' + listToString( f.audio['albumartist']) + '|')
 
                 #if there is a composer tag, and it also exists in track or album artists, remove it.
-                if 'composer' in f:
+                if 'composer' in f.audio:
+                    comp = listToString( f.audio['composer'])
                     Log.writeInfo('Searching for composer in artist and album artist tags')
-                    newArtists = ''
-                    newAlbumArtistTag = ''
+                    newArtistList = []
+                    newAlbumArtistList = []
                     for artist in trackArtistList:
-                        if artist.strip() != f['composer'].strip():
-                            newArtists = newArtists + artist + '; '
-                    if newArtists:
-                        if f['artist'] != newArtists[:-2]:
-                            f['artist'] = newArtists[:-2]
-                    for albumArtist in trackAlbumArtistList:
-                        if albumArtist.strip() != f['composer'].strip():
-                            newAlbumArtistTag = newAlbumArtistTag + albumArtist + '; '
-                    if newAlbumArtistTag:
-                        f['albumartist'] = newAlbumArtistTag[:-2]
+                        if artist != comp:
+                            newArtistList.append(artist)
 
-                Log.writeInfo('After - albumartist is: ' + f['albumartist'] + '|')
+                    f.audio['artist'] = newArtistList
+
+                    for albumArtist in trackAlbumArtistList:
+                        if albumArtist != comp:
+                            newAlbumArtistList.append(albumArtist)
+
+                    f.audio['albumartist'] = newAlbumArtistList
+
+                Log.writeInfo('After - albumartist is: ' + listToString(f.audio['albumartist']) + '|')
 
 
                 #remove [] in album title, except for live, bootleg, flac*, mp3* dsd* dsf* and [import]
-                f['album'] = re.sub('\\[(?![Ll][Ii][Vv][Ee]|[Bb][Oo][Oo]|[Ii][Mm]|[Ff][Ll][Aa][Cc]|[[Dd][Ss][Dd]|[Mm][Pp][3]|[Dd][Ss][Ff])[a-zA-Z0-9]{1,}\\]', '',  f['album'])
+                f.audio['album'] = re.sub('\\[(?![Ll][Ii][Vv][Ee]|[Bb][Oo][Oo]|[Ii][Mm]|[Ff][Ll][Aa][Cc]|[[Dd][Ss][Dd]|[Mm][Pp][3]|[Dd][Ss][Ff])[a-zA-Z0-9]{1,}\\]', '',  listToString(f.audio['album']))
 
                 #regexes for title and album name
                 Log.writeInfo('Executing regex substitutions')
+                trackName = listToString( f.audio['title'])
+                albumName = listToString(f.audio['album'])
+
                 for regex in regexes:
                     #Log.writeInfo(regex[0] + ' - ' + regex[1]) 
-                    trackName = f['title']
-                    albumName = f['album']
                     #Log.writeInfo('Was: ' + trackName + ' | ' + albumName)
                     trackName = re.sub(regex[0], regex[1], trackName)
                     albumName = re.sub(regex[0], regex[1], albumName)
                     #Log.writeInfo('Is now: ' + trackName + ' | ' + albumName)
-                    f['title'] = trackName
-                    f['album'] = albumName
+                f.audio['title'] = trackName
+                f.audio['album'] = albumName
 
 
                 Log.writeInfo('Fixing genre')
                 #move genre tag to "OrigGenre" and replace with Classical
-                if 'genre' in f:
-                    if f['genre'] != 'Classical':
-                        f['origgenre'] = f['genre']
+                if 'genre' in f.audio:
+                    if f.audio['genre'] != 'Classical':
+                        f.audio['origgenre'] = f.audio['genre']
 
-                f['genre'] = 'Classical'
+                f.audio['genre'] = 'Classical'
                 
-              
+                Log.writeInfo('Before: ')
+                Log.writeInfo(f.orig.pprint())
+                Log.writeInfo('After: ')
+                Log.writeInfo(f.audio.pprint())
 
+                f.audio.save()
         #cluster.update()
 
 

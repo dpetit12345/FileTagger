@@ -1,5 +1,6 @@
 import unittest
 import sys, os
+import dictdiffer
 from classical_fixes import listToString
 from classical_fixes import makeKey
 from classical_fixes import reverseName
@@ -102,6 +103,42 @@ class Test_ClusteringTests(unittest.TestCase):
         cm.clusterFiles(paths,recursive=False)
         self.assertTrue(len(cm.clusters) == 2, 'Multiple path clustering incorrect')
 
+class Test_AudioFileTagTests(unittest.TestCase):
+    def test_DictionaryDifference(self):
+
+        first_dict = {'a' : 'avalue', 'b' : 'bvalue', 'c':'cvalue', 'd': 'dvalue'}
+        second_dict = {'a' : 'avalue', 'b' : 'NEW VALUE',  'd': 'dvalue', 'e':'This is new'}
+
+        diffs = list(dictdiffer.diff(first_dict, second_dict))
+        self.assertTrue(len(diffs) == 3, 'Did not find three changes')
+            
+
+   
+    #def test_CompareOrigToCurrent(self):
+    #    cm = ClusterMaker()
+    #    paths = []
+    #    dir_path = os.path.dirname(os.path.realpath(__file__))
+    #    fullpath = os.path.join(dir_path, 'TestData\\file1.flac')
+    #    paths.append(fullpath )
+    #    cm.clusterFiles(paths)
+
+    #    for ci, (ck, cluster) in enumerate(cm.clusters.items()):
+
+    #        for i, f in enumerate(cluster.files):
+    #            self.assertTrue(f.orig == f.audio, 'Files not the same')
+    #            f.audio['new tag'] = "New Tag"
+    #            f.audio['album'] = ''
+    #            f.audio['date'] = 1980
+    #            self.assertFalse(f.orig == f.audio, 'Files are the same but should be different')
+
+    #            deltas = f.getDiffs()
+    #            print (deltas)
+    #            pass
+
+
+
+
+class Test_FunctionTests(unittest.TestCase):
     def test_ListToString(self):
         mylist = ['Test1', 'Test2', 'Test3']
         self.assertEqual('Test1;Test2;Test3', listToString(mylist), 'List did not convert to string correctly.')

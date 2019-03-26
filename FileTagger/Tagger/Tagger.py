@@ -13,7 +13,7 @@ if __name__ == '__main__':
     parser.add_argument('-r', action='store_true', help='Recursively find files in subdirectories')
     parser.add_argument('-e', action='store_true', help='Enumerate clusters')
     parser.add_argument('-noui', action='store_true', help='Run without GUI UI')
-    parser.add_argument('-v',default=2, action='store', help='Verbosity 1=Error, 2=Warning, 3=Info',type=int,choices=[1,2,3])
+    parser.add_argument('-v',default=3, action='store', help='Verbosity 1=Error, 2=Warning, 3=Info',type=int,choices=[1,2,3])
     args = parser.parse_args()
     
     recursive = args.r
